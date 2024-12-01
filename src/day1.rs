@@ -1,29 +1,36 @@
-use std::{collections::HashMap, iter::zip, path::absolute};
+use std::{collections::HashMap, iter::zip};
 
-pub struct Lists {
-    left: Vec<i32>,
-    right: Vec<i32>,
+use parser::parse;
+
+pub mod parser {
+    use nom::bytes::complete::tag;
+    use nom::character::complete::i32;
+    use nom::character::complete::multispace0;
+    use nom::multi::separated_list0;
+    use nom::sequence::separated_pair;
+    use nom::IResult;
+
+    pub fn parse_pair(input: &str) -> IResult<&str, (i32, i32)> {
+        separated_pair(i32, multispace0, i32)(input)
+    }
+
+    pub fn parse(input: &str) -> IResult<&str, Vec<(i32, i32)>> {
+        separated_list0(tag("\n"), parse_pair)(input)
+    }
 }
 
 #[aoc_generator(day1)]
 pub fn input_generator(input: &str) -> (Vec<i32>, Vec<i32>) {
-    let mut left: Vec<i32> = Vec::new();
-    let mut right: Vec<i32> = Vec::new();
-    input.lines().for_each(|x| {
-        let y: Vec<i32> = x.split("   ").map(|d| d.parse::<i32>().unwrap()).collect();
-        left.push(y[0]);
-        right.push(y[1]);
-    });
-    left.sort();
-    right.sort();
+    let p = parse(input).unwrap().1;
+    let (mut left, mut right): (Vec<i32>, Vec<i32>) = p.iter().cloned().unzip();
+    left.sort_unstable();
+    right.sort_unstable();
     (left, right)
 }
 
 #[aoc(day1, part1)]
 pub fn solver_p1(input: &(Vec<i32>, Vec<i32>)) -> i32 {
-    zip(input.0.iter(), input.1.iter())
-        .map(|(x, y)| (x - y).abs())
-        .sum()
+    zip(input.0.iter(), input.1.iter()).fold(0, |acc, (x, y)| acc + ((x - y).abs()))
 }
 
 #[aoc(day1, part2)]
@@ -52,6 +59,8 @@ pub fn solver_p2(input: &(Vec<i32>, Vec<i32>)) -> i32 {
 
 #[cfg(test)]
 mod tests {
+    use parser::{parse, parse_pair};
+
     use super::*;
 
     static TEST_INPUT: &str = "3   4
@@ -62,8 +71,23 @@ mod tests {
 3   3";
 
     #[test]
+    fn total_nom_parse() {
+        let (_, parsed) = parse(TEST_INPUT).unwrap();
+        assert_eq!(
+            parsed,
+            Vec::from([(3, 4), (4, 3), (2, 5), (1, 3), (3, 9), (3, 3)])
+        )
+    }
+    #[test]
     fn part_1() {
         assert_eq!(solver_p1(&input_generator(TEST_INPUT)), 11)
+    }
+
+    #[test]
+    fn test_parse_line() {
+        let (_, output) = parse_pair("123   456").unwrap();
+
+        assert_eq!(output, (123, 456))
     }
 
     #[test]
