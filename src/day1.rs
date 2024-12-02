@@ -1,3 +1,4 @@
+#![allow(clippy::is_digit_ascii_radix)]
 use std::{
     collections::{BTreeMap, HashMap},
     iter::zip,
@@ -7,6 +8,7 @@ use parser::parse;
 use rayon::prelude::*;
 use wide::i32x8;
 
+#[allow(non_camel_case_types)]
 type i32s = i32x8;
 
 pub mod parser {
@@ -26,8 +28,8 @@ pub mod parser {
     // Instead of using the i32 nom parser you can use this custom one, I found it had a slight degredation on speed but was slightly more consistent
     // not really worth it
     pub fn num(input: &str) -> IResult<&str, i32> {
-        map_res(take_while(|c: char| c.is_digit(10)), |raw| {
-            i32::from_str_radix(raw, 10)
+        map_res(take_while(|c: char| c.is_digit(10)), |raw: &str| {
+            raw.parse::<i32>()
         })(input)
     }
 
@@ -60,7 +62,7 @@ pub fn solver_p1(input: &(Vec<i32>, Vec<i32>)) -> i32 {
 pub fn solver_simd_p1(input: &(Vec<i32>, Vec<i32>)) -> i32 {
     let lefts: Vec<i32s> = input
         .0
-        .chunks_exact(8)
+        .chunks_exact(8) // this only works because the input is a multiple of 8 long
         .map(|c| i32s::new(c.try_into().unwrap()))
         .collect();
     let rights: Vec<i32s> = input
