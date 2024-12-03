@@ -4,6 +4,7 @@ extern crate aoc_runner;
 extern crate aoc_runner_derive;
 
 pub mod day1;
-mod day2;
+pub mod day2;
+pub mod day3;
 
 aoc_lib! {year = 2024}
