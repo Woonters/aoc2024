@@ -31,8 +31,18 @@ pub mod naive_parser {
         many0(character)(input)
     }
 
+    /// Naive parser for the puzzle input
+    ///
+    /// # Panics
+    ///
+    /// Panics if the input does not form the puzzle inputs general design spec
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error never
     pub fn parse(input: &str) -> IResult<&str, NaiveInput> {
-        let out = separated_list0(line_ending, map_line)(input).unwrap();
+        let out = separated_list0(line_ending, map_line)(input)
+            .expect("The puzzle input did not match with the design");
         Ok((out.0, NaiveInput { map: out.1 }))
     }
 }

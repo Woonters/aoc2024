@@ -34,20 +34,29 @@ pub mod naive_parser {
 
     fn checker(input: &str) -> IResult<&str, Map> {
         let mut out: Map = HashMap::new();
-        let (ret_str, vec_to_unpack) = separated_list0(newline, checker_line)(input).unwrap();
-        vec_to_unpack.iter().for_each(|v| {
+        let (ret_str, vec_to_unpack) = match separated_list0(newline, checker_line)(input) {
+            Ok(o) => o,
+            Err(e) => return Err(e),
+        };
+        for v in &vec_to_unpack {
             out.entry(v.0)
                 .and_modify(|l| {
                     l.insert(v.1);
                 })
                 .or_insert(HashSet::from([v.1]));
-        });
+        }
         Ok((ret_str, out))
     }
 
+    /// simple input parser
+    ///
+    /// # Panics
+    ///
+    /// Panics if The input doesn't match the problem input pattern
     pub fn parse(input: &str) -> NaiveData {
-        let (checker_map, print_runs) =
-            separated_pair(checker, tag("\n\n"), runs)(input).unwrap().1;
+        let (checker_map, print_runs) = separated_pair(checker, tag("\n\n"), runs)(input)
+            .expect("Input didn't match the input pattern")
+            .1;
         NaiveData {
             checker_map,
             print_runs,
@@ -66,16 +75,16 @@ fn part1(input: &NaiveData) -> u32 {
     input.print_runs.iter().for_each(|run| {
         let mut seen: HashSet<u32> = HashSet::new();
         let mut valid = true;
-        run.iter().for_each(|elem| {
+        for elem in run {
             if let Some(m) = input.checker_map.get(elem) {
                 if m.intersection(&seen).count() != 0 {
-                    valid = false
+                    valid = false;
                 }
             }
             seen.insert(*elem);
-        });
+        }
         if valid {
-            out += run[run.len() / 2]
+            out += run[run.len() / 2];
         }
     });
     out
