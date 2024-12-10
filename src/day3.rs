@@ -97,7 +97,7 @@ fn part2(input: &[INST]) -> u32 {
         match inst {
             INST::Mul(l, r) => {
                 if flag {
-                    counter += (l * r)
+                    counter += l * r
                 }
             }
             INST::Do => flag = true,
